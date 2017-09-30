@@ -1,0 +1,84 @@
+#
+# File:		makefile.b32
+# Author:	Garaham Wheeler
+# Created:	1996
+#
+
+WXDIR = d:\wx
+BCCDIR=d:\bc5
+!include $(WXDIR)\src\makeb32.env
+
+WXLIBDIR = $(WXDIR)\lib
+WXINC = $(WXDIR)\include\msw
+WXBASESRC = $(WXDIR)\src\base
+WXBASEINC = $(WXDIR)\include\base
+WXLIB = $(WXLIBDIR)\wx32.lib
+LIBS=$(WXLIB) cw32 import32
+
+TARGET=all
+
+!if "$(FINAL)" == "0"
+LINKFLAGS=/v /Tpe /L$(WXLIBDIR);$(BCCDIR)\lib
+OPT = -Od
+DEBUG_FLAGS= -v
+!else
+LINKFLAGS=/Tpe /L$(WXLIBDIR);$(BCCDIR)\lib
+OPT = -Od
+DEBUG_FLAGS =
+!endif
+CPPFLAGS=$(DEBUG_FLAGS) $(OPT) @$(CFG) -DDRAWTREE -DABPRUNE
+
+LIBSOURCES = ggame.cc gcanvas.cc gdialog.cc gpanel.cc gmenu.cc gframe.cc gafgame.cc
+LIBOBJECTS = ggame.obj gcanvas.obj gdialog.obj gpanel.obj gmenu.obj gframe.obj gafgame.obj
+LIBTARGET = gaf.lib
+
+SKELSOURCES = wingaf.cc
+SKELOBJECTS = wingaf.obj
+
+GHDR=ggame.h gpanel.h gdialog.h gcanvas.h gframe.h
+
+all: $(LIBTARGET) wingaf.exe
+
+$(LIBTARGET): $(LIBOBJECTS)
+	erase $(LIBTARGET)
+	tlib $(LIBTARGET) /P32 @&&!
++$(LIBOBJECTS:.obj =.obj +)
+!
+
+wingaf.exe:	$(SKELOBJECTS) wingaf.def wingaf.res $(LIBTARGET)
+  tlink32 $(LINKFLAGS) @&&!
+c0w32.obj $(SKELOBJECTS)
+wingaf
+nul
+$(LIBTARGET) $(LIBS)
+wingaf.def
+!
+        brc32 -K wingaf.res
+
+.cc.obj:
+	bcc32 $(CPPFLAGS) -c {$< }
+
+.c.obj:
+	bcc32 $(CPPFLAGS) -P- -c {$< }
+
+wingaf.obj: wingaf.cc wingaf.h gafgame.h $(GHDR)
+
+gdialog.obj: gdialog.cc $(GHDR)
+
+gcanvas.obj: gcanvas.cc $(GHDR)
+
+gpanel.obj: gpanel.cc $(GHDR)
+
+gmenu.obj: gmenu.cc $(GHDR)
+
+gframe.obj: gframe.cc $(GHDR)
+
+ggame.obj: ggame.cc ggame.h
+
+gafgame.obj : gafgame.cc gafgame.h
+
+wingaf.res : wingaf.rc $(WXDIR)\include\msw\wx.rc
+    brc32 -r /i$(BCCDIR)\include /i$(WXDIR)\include\msw /i$(WXDIR)\contrib\fafa wingaf
+
+clean:
+        -erase *.obj *.exe *.res *.map *.rws

@@ -1,0 +1,6 @@
+winskel_icn ICON winskel.ico
+
+rcinclude e:\wx32\include\msw\wx.rc
+
+
+

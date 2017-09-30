@@ -1,0 +1,90 @@
+#
+# File:		makefile.bcc
+# Author:	Graham Wheeler
+# Created:	1996
+#
+
+WXDIR = e:\wx16
+BCCDIR=c:\bc5
+!include $(WXDIR)\src\makebcc.env
+
+THISDIR = d:\gram\games\windows\lib
+WXLIB = $(WXDIR)\lib\wx.lib
+WXLIBS = $(WXLIA) $(WXLIBB) $(WXLIBC)
+LIBS=$(WXLIB) $(WXLIBS) mathwl cwl import
+INC=-I$(WXDIR)\include\base -I$(WXDIR)\include\msw
+CFG=$(WXDIR)\src\wxwin.cfg
+RC=rc16.bat
+RCFLAGS=-K
+
+!if "$(FINAL)" == "0"
+LINKFLAGS=/v/Vt /Twe /L$(WXDIR)\lib;$(BCCDIR)\lib
+OPT = -Od
+DEBUG_FLAGS= -v
+!else
+LINKFLAGS=/Twe /L$(WXDIR)\lib;$(BCCDIR)\lib
+OPT = -O2
+DEBUG_FLAGS =
+!endif
+CPPFLAGS=$(DEBUG_FLAGS) $(OPT) @$(CFG)
+
+CPPFLAGS=$(DEBUG_FLAGS) $(OPT) @$(CFG) -DDRAWTREE -DABPRUNE -DW16
+
+LIBSOURCES = ggame.cc gcanvas.cc gdialog.cc gpanel.cc gmenu.cc gframe.cc gafgame.cc
+LIBOBJECTS = gcanvas.obj gdialog.obj gpanel.obj gmenu.obj gframe.obj gafgame.obj ggame.obj
+LIBTARGET = gaf16.lib
+
+SKELSOURCES = wingaf.cc
+SKELOBJECTS = wingaf.obj
+
+GHDR=ggame.h gpanel.h gdialog.h gcanvas.h gframe.h
+
+all: $(LIBTARGET) wingaf16.exe
+
+$(LIBTARGET): $(LIBOBJECTS)
+	erase $(LIBTARGET)
+	tlib $(LIBTARGET) /P32 @&&!
++$(LIBOBJECTS:.obj =.obj +)
+!
+
+wingaf16.exe: $(SKELOBJECTS) wingaf16.def wingaf16.res $(LIBTARGET)
+  tlink $(LINKFLAGS) @&&!
+c0wl.obj $(SKELOBJECTS)
+wingaf16
+nul
+$(LIBS) $(LIBTARGET)
+wingaf16.def
+!
+        $(RC) $(RCFLAGS) wingaf16.res
+
+.cc.obj:
+	bcc -P $(CPPFLAGS) -c {$< }
+
+wingaf.obj: wingaf.cc wingaf.h gafgame.h $(GHDR)
+
+gdialog.obj: gdialog.cc $(GHDR)
+
+gcanvas.obj: gcanvas.cc $(GHDR)
+
+gpanel.obj: gpanel.cc $(GHDR)
+
+gmenu.obj: gmenu.cc $(GHDR)
+
+gframe.obj: gframe.cc $(GHDR)
+
+ggame.obj: ggame.cc ggame.h
+
+gafgame.obj : gafgame.cc gafgame.h
+
+wingaf16.res : wingaf16.rc $(WXDIR)\include\msw\wx.rc
+    $(RC) -r /i$(BCCDIR)\include\win16 /i$(BCCDIR)\include /i$(WXDIR)\include\msw /i$(WXDIR)\contrib\fafa wingaf16
+
+clean:
+        -erase *.obj
+        -erase wingaf16.exe
+        -erase *.res
+        -erase *.map
+        -erase *.rws
+	-erase gaf16.lib
+
+
